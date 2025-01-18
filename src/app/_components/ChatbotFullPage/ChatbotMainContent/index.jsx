@@ -8,28 +8,6 @@ import { PiPaperPlaneRightFill } from "react-icons/pi";
 import Markdown from "react-markdown";
 import { MessageHistoryContext } from "@/contexts/MessageHistory";
 
-const generateResponse = async (prompt, modelType) => {
-  const payload = {
-    modelType,
-    prompt,
-  };
-
-  const response = await fetch("/chatbot/api/chatbot", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-
-  const res = await response.json();
-  const errors = res?.errors;
-  if (errors) {
-    console.error(errors);
-    return { answer: "Error generating response." };
-  }
-
-  const data = res?.data;
-  return data;
-};
-
 export default function ChatbotMainContent(props) {
   const messageHistoryCtx = useContext(MessageHistoryContext);
   const [userMessage, setUserMessage] = useState("");
@@ -63,27 +41,79 @@ export default function ChatbotMainContent(props) {
 
     messageHistoryCtx.insert({
       type: "incoming",
-      value: "Thinking...",
+      value: "",
       sourceDocuments: [],
     });
 
-    const response = await generateResponse(message, props.modelType);
-    console.log(response);
+    try {
+      const response = await fetch("/chatbot/api/chatbot", {
+        method: "POST",
+        body: JSON.stringify({
+          modelType: props.modelType,
+          prompt: message,
+        }),
+      });
 
-    const answer = !response?.answer.includes("no_answer")
-      ? response?.answer
-      : "Maaf, saya tidak dapat menjawab pertanyaan tersebut dengan informasi yang tersedia. Terima kasih telah bertanya.";
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    const sourceDocuments = !response?.answer.includes("Maaf")
-      ? (response?.sourceDocuments ?? [])
-      : [];
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedResponse = "";
 
-    messageHistoryCtx.replace({
-      type: "incoming",
-      value: answer,
-      sourceDocuments,
-    });
-    chatBox.scrollTo(0, chatBox.scrollHeight);
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              if (data.error) {
+                messageHistoryCtx.replace({
+                  type: "incoming",
+                  value: "An error occurred while generating the response.",
+                  sourceDocuments: [],
+                });
+                break;
+              }
+
+              if (data.done) {
+                messageHistoryCtx.replace({
+                  type: "incoming",
+                  value: accumulatedResponse,
+                  sourceDocuments: data.sourceDocuments || [],
+                });
+                break;
+              }
+
+              if (data.text) {
+                accumulatedResponse += data.text;
+                messageHistoryCtx.replace({
+                  type: "incoming",
+                  value: accumulatedResponse,
+                  sourceDocuments: [],
+                });
+              }
+            } catch (e) {
+              console.error("Error parsing SSE data:", e);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      messageHistoryCtx.replace({
+        type: "incoming",
+        value: "An error occurred while generating the response.",
+        sourceDocuments: [],
+      });
+    }
   };
 
   return (
@@ -162,7 +192,9 @@ export default function ChatbotMainContent(props) {
           <PiPaperPlaneRightFill />
         </span>
       </div>
-      <p className="text-center mt-3">Chatbot dapat membuat kesalahan. Periksa kembali informasi penting.</p>
+      <p className="mt-3 text-center">
+        Chatbot dapat membuat kesalahan. Periksa kembali informasi penting.
+      </p>
     </div>
   );
 }

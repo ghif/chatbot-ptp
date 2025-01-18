@@ -1,12 +1,14 @@
 import path from "path";
 
 // Model
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+// import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatOpenAI }  from "@langchain/openai";
 
 // Store
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+// import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { OpenAIEmbeddings } from "@langchain/openai";
 import { FaissStore } from "@langchain/community/vectorstores/faiss";
-import { TaskType } from "@google/generative-ai";
+// import { TaskType } from "@google/generative-ai";
 
 // Generation
 import { PromptTemplate } from "@langchain/core/prompts";
@@ -14,12 +16,19 @@ import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
 import { createRetrievalChain } from "langchain/chains/retrieval";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 
+/** @type {import("@langchain/core/runnables").RunnableSequence<Record<string, unknown>, string> | null} */
+let chain = null;
+
 const loadVectorStore = async (directory) => {
   try {
-    const embeddings = new GoogleGenerativeAIEmbeddings({
-      apiKey: process.env.GOOGLE_API_KEY,
-      model: "text-embedding-004",
-      taskType: TaskType.SEMANTIC_SIMILARITY,
+    // const embeddings = new GoogleGenerativeAIEmbeddings({
+    //   apiKey: process.env.GOOGLE_API_KEY,
+    //   model: "text-embedding-004",
+    //   taskType: TaskType.SEMANTIC_SIMILARITY,
+    // });
+    const embeddings = new OpenAIEmbeddings({
+      apiKey: process.env.OPENAI_API_KEY,
+      model: "text-embedding-3-large"
     });
 
     return await FaissStore.load(directory, embeddings);
@@ -65,51 +74,97 @@ const createChain = async (model, retriever) => {
   }
 };
 
-const ask = async (prompt) => {
-  const chain = await initialize();
-  if (!chain) {
-    return {
-      answer:
-        "Maaf, saat ini saya tidak dapat menjawab pertanyaan Anda. Silakan coba beberapa saat lagi.",
-    };
+const initialize = async () => {
+  if (chain) {
+    return chain;
   }
 
-  const result = await chain.invoke({
-    input: prompt,
-  });
-
-  const sourceDocuments = result.context.map((ctx) => {
-    const filePath = ctx.metadata?.source ?? "";
-    const pathSeparator = filePath.includes("/") ? "/" : "\\";
-    return filePath.split(pathSeparator).pop();
-  });
-
-  return {
-    ...result,
-    sourceDocuments,
-  };
-};
-
-const initialize = async () => {
+  const startTime = performance.now();
   try {
-    const model = new ChatGoogleGenerativeAI({
-      apiKey: process.env.GOOGLE_API_KEY,
-      model: "gemini-1.5-flash",
+    // const model = new ChatGoogleGenerativeAI({
+    //   apiKey: process.env.GOOGLE_API_KEY,
+    //   model: "gemini-1.5-flash",
+    //   temperature: 0.5,
+    //   maxRetries: 2,
+    // });
+    const model = new ChatOpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      model: "gpt-4o-mini-2024-07-18",
       temperature: 0.5,
       maxRetries: 2,
-    });
+    })
 
     const vectorStore = await loadVectorStore(
       path.join(process.cwd(), "src/data/documents/pdf/peraturan/vector-store")
     );
 
     const retriever = createRetriever(vectorStore);
-    const chain = await createChain(model, retriever);
+    chain = await createChain(model, retriever);
 
-    return (retriever && chain) || null;
+    const endTime = performance.now();
+    console.log(`Initialization took ${(endTime - startTime).toFixed(2)}ms`);
+
+    return chain;
   } catch (error) {
     console.error("Something went wrong while initializing Chatbot", error);
     return null;
+  }
+};
+
+const ask = async (prompt, { onStream } = {}) => {
+  if (!chain) {
+    chain = await initialize();
+  }
+
+  const startTime = performance.now();
+
+  try {
+    if (onStream) {
+      const stream = await chain.stream({
+        input: prompt,
+      });
+
+      let accumulatedText = "";
+      for await (const chunk of stream) {
+        console.dir(chunk, { depth: null });
+        if (chunk.answer && chunk.answer !== "Text") {
+          accumulatedText += chunk.answer;
+          await onStream({ text: chunk.answer });
+        }
+      }
+
+      const sourceDocuments =
+        stream.context?.map((ctx) => {
+          const filePath = ctx.metadata?.source ?? "";
+          const pathSeparator = filePath.includes("/") ? "/" : "\\";
+          return filePath.split(pathSeparator).pop();
+        }) || [];
+
+      return { answer: accumulatedText, sourceDocuments };
+    } else {
+      // Normal mode (existing code)
+      const result = await chain.invoke({
+        input: prompt,
+      });
+      const endTime = performance.now();
+      console.log(
+        `Chain invocation took ${(endTime - startTime).toFixed(2)}ms`
+      );
+
+      const sourceDocuments = result.context.map((ctx) => {
+        const filePath = ctx.metadata?.source ?? "";
+        const pathSeparator = filePath.includes("/") ? "/" : "\\";
+        return filePath.split(pathSeparator).pop();
+      });
+
+      return {
+        ...result,
+        sourceDocuments,
+      };
+    }
+  } finally {
+    const endTime = performance.now();
+    console.log(`Chain invocation took ${(endTime - startTime).toFixed(2)}ms`);
   }
 };
 

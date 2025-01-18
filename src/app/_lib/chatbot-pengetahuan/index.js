@@ -1,12 +1,14 @@
 import path from "path";
 
 // Model
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+// import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatOpenAI } from "@langchain/openai";
 
 // Store
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+// import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { OpenAIEmbeddings } from "@langchain/openai";
 import { FaissStore } from "@langchain/community/vectorstores/faiss";
-import { TaskType } from "@google/generative-ai";
+// import { TaskType } from "@google/generative-ai";
 
 // Generation
 import { PromptTemplate } from "@langchain/core/prompts";
@@ -16,10 +18,14 @@ import { StringOutputParser } from "@langchain/core/output_parsers";
 
 const loadVectorStore = async (directory) => {
   try {
-    const embeddings = new GoogleGenerativeAIEmbeddings({
-      apiKey: process.env.GOOGLE_API_KEY,
-      model: "text-embedding-004",
-      taskType: TaskType.SEMANTIC_SIMILARITY,
+    // const embeddings = new GoogleGenerativeAIEmbeddings({
+    //   apiKey: process.env.GOOGLE_API_KEY,
+    //   model: "text-embedding-004",
+    //   taskType: TaskType.SEMANTIC_SIMILARITY,
+    // });
+    const embeddings = new OpenAIEmbeddings({
+      apiKey: process.env.OPENAI_API_KEY,
+      model: "text-embedding-3-large"
     });
 
     return await FaissStore.load(directory, embeddings);
@@ -92,12 +98,18 @@ const ask = async (prompt) => {
 
 const initialize = async () => {
   try {
-    const model = new ChatGoogleGenerativeAI({
-      apiKey: process.env.GOOGLE_API_KEY,
-      model: "gemini-1.5-flash",
+    // const model = new ChatGoogleGenerativeAI({
+    //   apiKey: process.env.GOOGLE_API_KEY,
+    //   model: "gemini-1.5-flash",
+    //   temperature: 0.9,
+    //   maxRetries: 4,
+    // });
+    const model = new ChatOpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      model: "gpt-4o-mini-2024-07-18",
       temperature: 0.9,
       maxRetries: 4,
-    });
+    })
 
     const vectorStore = await loadVectorStore(
       path.join(

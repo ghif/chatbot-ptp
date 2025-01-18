@@ -7,9 +7,9 @@ import * as ChatbotPengetahuan from "@/lib/chatbot-pengetahuan";
 export async function POST(request) {
   try {
     const data = await request.json();
-
     const prompt = data?.prompt;
     const modelType = data?.modelType;
+
     if (!prompt || !modelType) {
       return NextResponse.json(
         {
@@ -23,25 +23,63 @@ export async function POST(request) {
       );
     }
 
-    let result;
-    if (modelType === "peraturan") {
-      result = await ChatbotPeraturan.ask(prompt);
-    } else if (modelType === "pengetahuan") {
-      result = await ChatbotPengetahuan.ask(prompt);
-    }
+    const encoder = new TextEncoder();
+    const stream = new TransformStream();
+    const writer = stream.writable.getWriter();
 
-    return NextResponse.json(
-      {
-        code: StatusCodes.OK,
-        status: ReasonPhrases.OK,
-        data: {
-          ...result,
-        },
+    (async () => {
+      try {
+        let result;
+        if (modelType === "peraturan") {
+          result = await ChatbotPeraturan.ask(prompt, {
+            onStream: async (chunk) => {
+              await writer.write(
+                encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`)
+              );
+            },
+          });
+        } else if (modelType === "pengetahuan") {
+          result = await ChatbotPengetahuan.ask(prompt, {
+            onStream: async (chunk) => {
+              await writer.write(
+                encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`)
+              );
+            },
+          });
+        }
+
+        await writer.write(
+          encoder.encode(
+            `data: ${JSON.stringify({
+              done: true,
+              sourceDocuments: result.sourceDocuments,
+            })}\n\n`
+          )
+        );
+      } catch (error) {
+        console.error("Streaming error:", error);
+        await writer.write(
+          encoder.encode(
+            `data: ${JSON.stringify({
+              error: true,
+              message: error.message,
+            })}\n\n`
+          )
+        );
+      } finally {
+        await writer.close();
+      }
+    })();
+
+    return new Response(stream.readable, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
       },
-      { status: StatusCodes.OK }
-    );
+    });
   } catch (error) {
-    console.log(error)
+    console.error(error);
     return NextResponse.json(
       {
         code: StatusCodes.BAD_REQUEST,

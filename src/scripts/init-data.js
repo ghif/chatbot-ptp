@@ -13,10 +13,12 @@ import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
 // Store
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
-import { TaskType } from "@google/generative-ai";
+// import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+// import { TaskType } from "@google/generative-ai";
+import { OpenAIEmbeddings } from "@langchain/openai";
 
-dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
+// dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 const loadPdfDocuments = async (path) => {
   try {
@@ -47,10 +49,15 @@ const splitDocuments = async (documents) => {
 
 const createVectorStore = async (documents) => {
   try {
-    const embeddings = new GoogleGenerativeAIEmbeddings({
-      apiKey: process.env.GOOGLE_API_KEY,
-      model: "text-embedding-004",
-      taskType: TaskType.SEMANTIC_SIMILARITY,
+    // const embeddings = new GoogleGenerativeAIEmbeddings({
+    //   apiKey: process.env.GOOGLE_API_KEY,
+    //   model: "text-embedding-004",
+    //   taskType: TaskType.SEMANTIC_SIMILARITY,
+    // });
+    
+    const embeddings = new OpenAIEmbeddings({
+      apiKey: process.env.OPENAI_API_KEY,
+      model: "text-embedding-3-large",
     });
 
     const vectorStore = await FaissStore.fromDocuments(documents, embeddings);
@@ -67,12 +74,12 @@ const createVectorStore = async (documents) => {
       "public/assets/documents/pdf/peraturan/",
       "public/assets/documents/pdf/pengetahuan/",
     ];
-
+    console.info(`OPENAI API key ${process.env.OPENAI_API_KEY}`);
     console.info(`Found ${documentsDirectory.length} documents directory`);
 
     for (const documentDirectory of documentsDirectory) {
       const documentsPath = path.join(process.cwd(), documentDirectory);
-
+      
       console.info(`> Parsing documents from "${documentsPath}"`);
       const docs = await loadPdfDocuments(documentsPath);
       const splittedDocs = await splitDocuments(docs);
