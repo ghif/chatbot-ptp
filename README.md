@@ -37,7 +37,7 @@ npm run dev
 Visit [http://localhost:3000](http://localhost:3000) to see the application in action.
 
 ## OpenAI API Configuration
-1. Copy the environment file:
+1. Copy and rename the environment file:
 ```bash
 cp .env.local .env
 ```
