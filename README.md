@@ -46,6 +46,16 @@ cp .env.local .env
 OPENAI_API_KEY="<YOUR_API_KEY_HERE>"
 ```
 
+## Initial Setup for Vector Stores (optional)
+The vector stores initialization process converts PDF documents into searchable vector embeddings, which are essential for the chatbot's RAG capabilities. This step must be performed before running the application for the first time. 
+
+At the moment, all the source PDF documents are placed in `public/assets/documents/pdf/`. Run the following command to create the vector stores:
+
+```bash
+cd chatbot-ptp
+node src/scripts/init-data.js
+```
+
 ## Development
 - The main application code is in `app/page.js`
 - Changes are reflected immediately during development
