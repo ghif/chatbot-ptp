@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import path from "path";
 import fs from "fs/promises";
 
+import { AI_CONFIG } from "@/config/ai";
+
 import { FaissStore } from "@langchain/community/vectorstores/faiss";
 
 // Document Loader
@@ -13,8 +15,6 @@ import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
 // Store
-// import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
-// import { TaskType } from "@google/generative-ai";
 import { OpenAIEmbeddings } from "@langchain/openai";
 
 // dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
@@ -49,15 +49,9 @@ const splitDocuments = async (documents) => {
 
 const createVectorStore = async (documents) => {
   try {
-    // const embeddings = new GoogleGenerativeAIEmbeddings({
-    //   apiKey: process.env.GOOGLE_API_KEY,
-    //   model: "text-embedding-004",
-    //   taskType: TaskType.SEMANTIC_SIMILARITY,
-    // });
-    
     const embeddings = new OpenAIEmbeddings({
       apiKey: process.env.OPENAI_API_KEY,
-      model: "text-embedding-3-large",
+      model: AI_CONFIG.openai.models.embedding,
     });
 
     const vectorStore = await FaissStore.fromDocuments(documents, embeddings);

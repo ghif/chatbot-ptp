@@ -4,6 +4,7 @@
     "paths": {
       "@/*": ["*"],
       "@/lib/*": ["_lib/*"],
+      "@/config/*": ["_config/*"],
       "@/components/*": ["_components/*"],
       "@/hooks/*": ["_hooks/*"],
       "@/contexts/*": ["_contexts/*"],
