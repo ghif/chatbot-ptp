@@ -1,14 +1,12 @@
 import path from "path";
 
 // Model
-// import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { AI_CONFIG } from "@/config/ai";
 import { ChatOpenAI }  from "@langchain/openai";
 
 // Store
-// import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { FaissStore } from "@langchain/community/vectorstores/faiss";
-// import { TaskType } from "@google/generative-ai";
 
 // Generation
 import { PromptTemplate } from "@langchain/core/prompts";
@@ -21,14 +19,9 @@ let chain = null;
 
 const loadVectorStore = async (directory) => {
   try {
-    // const embeddings = new GoogleGenerativeAIEmbeddings({
-    //   apiKey: process.env.GOOGLE_API_KEY,
-    //   model: "text-embedding-004",
-    //   taskType: TaskType.SEMANTIC_SIMILARITY,
-    // });
     const embeddings = new OpenAIEmbeddings({
       apiKey: process.env.OPENAI_API_KEY,
-      model: "text-embedding-3-large"
+      model: AI_CONFIG.openai.models.embedding,
     });
 
     return await FaissStore.load(directory, embeddings);
@@ -81,21 +74,15 @@ const initialize = async () => {
 
   const startTime = performance.now();
   try {
-    // const model = new ChatGoogleGenerativeAI({
-    //   apiKey: process.env.GOOGLE_API_KEY,
-    //   model: "gemini-1.5-flash",
-    //   temperature: 0.5,
-    //   maxRetries: 2,
-    // });
     const model = new ChatOpenAI({
       apiKey: process.env.OPENAI_API_KEY,
-      model: "gpt-4o-mini-2024-07-18",
-      temperature: 0.5,
-      maxRetries: 2,
+      model: AI_CONFIG.openai.models.chat,
+      temperature: AI_CONFIG.openai.temperatures.peraturan,
+      maxRetries: AI_CONFIG.openai.retries.peraturan,
     })
 
     const vectorStore = await loadVectorStore(
-      path.join(process.cwd(), "src/data/documents/pdf/peraturan/vector-store")
+      path.join(process.cwd(), AI_CONFIG.vectorStore.paths.peraturan)
     );
 
     const retriever = createRetriever(vectorStore);
