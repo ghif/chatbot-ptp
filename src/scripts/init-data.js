@@ -15,7 +15,10 @@ import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
 // Store
-import { OpenAIEmbeddings } from "@langchain/openai";
+// import { OpenAIEmbeddings } from "@langchain/openai";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { TaskType } from "@google/generative-ai";
+
 
 // dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
@@ -49,10 +52,17 @@ const splitDocuments = async (documents) => {
 
 const createVectorStore = async (documents) => {
   try {
-    const embeddings = new OpenAIEmbeddings({
-      apiKey: process.env.OPENAI_API_KEY,
-      model: AI_CONFIG.openai.models.embedding,
+    // const embeddings = new OpenAIEmbeddings({
+    //   apiKey: process.env.OPENAI_API_KEY,
+    //   model: AI_CONFIG.openai.models.embedding,
+    // });
+
+    const embeddings = new GoogleGenerativeAIEmbeddings({
+      apiKey: process.env.GOOGLE_API_KEY,
+      model: AI_CONFIG.gemini.models.embedding,
+      taskType: TaskType.SEMANTIC_SIMILARITY,
     });
+
 
     const vectorStore = await FaissStore.fromDocuments(documents, embeddings);
 

@@ -2,11 +2,13 @@ import path from "path";
 
 // Model
 import { AI_CONFIG } from "@/config/ai";
-import { ChatOpenAI }  from "@langchain/openai";
+// import { ChatOpenAI }  from "@langchain/openai";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 
 // Store
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { FaissStore } from "@langchain/community/vectorstores/faiss";
+import { TaskType } from "@google/generative-ai";
 
 // Generation
 import { PromptTemplate } from "@langchain/core/prompts";
@@ -17,11 +19,25 @@ import { StringOutputParser } from "@langchain/core/output_parsers";
 /** @type {import("@langchain/core/runnables").RunnableSequence<Record<string, unknown>, string> | null} */
 let chain = null;
 
+// const loadVectorStore = async (directory) => {
+//   try {
+//     const embeddings = new OpenAIEmbeddings({
+//       apiKey: process.env.OPENAI_API_KEY,
+//       model: AI_CONFIG.openai.models.embedding,
+//     });
+
+//     return await FaissStore.load(directory, embeddings);
+//   } catch (error) {
+//     throw new Error("Error while loading vector store!", { cause: error });
+//   }
+// };
+
 const loadVectorStore = async (directory) => {
   try {
-    const embeddings = new OpenAIEmbeddings({
-      apiKey: process.env.OPENAI_API_KEY,
-      model: AI_CONFIG.openai.models.embedding,
+    const embeddings = new GoogleGenerativeAIEmbeddings({
+      apiKey: process.env.GOOGLE_API_KEY,
+      model: AI_CONFIG.gemini.models.embedding,
+      taskType: TaskType.SEMANTIC_SIMILARITY,
     });
 
     return await FaissStore.load(directory, embeddings);
@@ -29,6 +45,7 @@ const loadVectorStore = async (directory) => {
     throw new Error("Error while loading vector store!", { cause: error });
   }
 };
+
 
 const createRetriever = (vectorStore) => {
   try {
@@ -74,11 +91,18 @@ const initialize = async () => {
 
   const startTime = performance.now();
   try {
-    const model = new ChatOpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-      model: AI_CONFIG.openai.models.chat,
-      temperature: AI_CONFIG.openai.temperatures.peraturan,
-      maxRetries: AI_CONFIG.openai.retries.peraturan,
+    // const model = new ChatOpenAI({
+    //   apiKey: process.env.OPENAI_API_KEY,
+    //   model: AI_CONFIG.openai.models.chat,
+    //   temperature: AI_CONFIG.openai.temperatures.peraturan,
+    //   maxRetries: AI_CONFIG.openai.retries.peraturan,
+    // })
+
+    const model = new ChatGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_API_KEY,
+      model: AI_CONFIG.gemini.models.chat,
+      temperature: AI_CONFIG.gemini.temperatures.peraturan,
+      maxRetries: AI_CONFIG.gemini.retries.peraturan,
     })
 
     const vectorStore = await loadVectorStore(
