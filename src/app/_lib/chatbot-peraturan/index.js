@@ -141,12 +141,14 @@ const ask = async (prompt, { onStream } = {}) => {
       }
 
       // Process context after stream completes
-      const sourceDocuments = contextData?.map((ctx) => {
-        // stream.context?.map((ctx) => {
-          const filePath = ctx.metadata?.source ?? "";
-          const pathSeparator = filePath.includes("/") ? "/" : "\\";
-          return filePath.split(pathSeparator).pop();
-      }) || [];
+      const sourceDocuments = [...new Set(
+          contextData?.map((ctx) => {
+          // stream.context?.map((ctx) => {
+            const filePath = ctx.metadata?.source ?? "";
+            const pathSeparator = filePath.includes("/") ? "/" : "\\";
+            return filePath.split(pathSeparator).pop();
+        }) || []
+      )];
 
       // Send final update with sources
       await onStream({
@@ -166,11 +168,13 @@ const ask = async (prompt, { onStream } = {}) => {
         `Chain invocation took ${(endTime - startTime).toFixed(2)}ms`
       );
 
-      const sourceDocuments = result.context.map((ctx) => {
-        const filePath = ctx.metadata?.source ?? "";
-        const pathSeparator = filePath.includes("/") ? "/" : "\\";
-        return filePath.split(pathSeparator).pop();
-      });
+      const sourceDocuments = [...new Set(
+        result.context.map((ctx) => {
+          const filePath = ctx.metadata?.source ?? "";
+          const pathSeparator = filePath.includes("/") ? "/" : "\\";
+          return filePath.split(pathSeparator).pop();
+        })
+      )];
 
       return {
         ...result,
