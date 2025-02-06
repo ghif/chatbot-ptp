@@ -1,17 +1,17 @@
 # Chatbot PTP - AI-Powered Chat Interface
 
-A modern chatbot application built with [Next.js](https://nextjs.org/), leveraging OpenAI's API for intelligent conversations. This project was bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+A modern chatbot application built with [Next.js](https://nextjs.org/), leveraging Google Gemini API for intelligent conversations. This project was bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Features
 - Real-time chat interface
-- Integration with OpenAI's API
+- Integration with Google Gemini API
 - Responsive design
 - Modern React components
 
 ## Prerequisites
 - Node.js 16.x or higher
 - NPM or alternative package manager
-- OpenAI API key
+- Google API key
 
 ## Getting Started
 
@@ -36,14 +36,14 @@ npm run dev
 
 Visit [http://localhost:3000](http://localhost:3000) to see the application in action.
 
-## OpenAI API Configuration
+## Google Gemini API Configuration
 1. Copy and rename the environment file:
 ```bash
 cp .env.local .env
 ```
-2. Open `.env` and add your OpenAI API key:
+2. Open `.env` and add your Google API key:
 ```
-OPENAI_API_KEY="<YOUR_API_KEY_HERE>"
+GOOGLE_API_KEY="<YOUR_API_KEY_HERE>"
 ```
 
 ## Initial Setup for Vector Stores (optional)
