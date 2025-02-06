@@ -102,7 +102,7 @@ export default function Chatbot() {
     });
 
     const response = await generateResponse(message, modelType);
-    console.log(response);
+    // console.log(response);
 
     const answer = !response?.answer.includes("no_answer")
       ? response?.answer

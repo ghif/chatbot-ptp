@@ -2,7 +2,6 @@ import path from "path";
 
 // Model
 import { AI_CONFIG } from "@/config/ai";
-// import { ChatOpenAI }  from "@langchain/openai";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 
 // Store
@@ -46,8 +45,18 @@ const createRetriever = (vectorStore) => {
 };
 
 const createChain = async (model, retriever) => {
+  // const promptTemplate = `
+  // Anda adalah seorang asisten yang dapat membantu menjawab pertanyaan user secara lengkap dan detail, jawablah pertanyaan user dengan bahasa indonesia.
+
+  // Konteks: {context}
+  // Pertanyaan: {input}
+  // Jawaban:
+  // `;
+
   const promptTemplate = `
-  Anda adalah seorang asisten yang dapat membantu menjawab pertanyaan user secara lengkap dan detail, jawablah pertanyaan user dengan bahasa indonesia.
+  Anda adalah seorang asisten yang dapat membantu menjawab pertanyaan user secara lengkap dan detail, jawablah pertanyaan user dengan bahasa indonesia dengan gaya yang bersahabat dan sopan.
+
+  Selalu awali dengan "Hi PTPers, " dan akhiri dengan "Terima kasih telah bertanya dengan Minters.".
 
   Konteks: {context}
   Pertanyaan: {input}
@@ -116,20 +125,35 @@ const ask = async (prompt, { onStream } = {}) => {
       });
 
       let accumulatedText = "";
+      let contextData = null;
+
       for await (const chunk of stream) {
-        console.dir(chunk, { depth: null });
+        // console.dir(chunk, { depth: null });
         if (chunk.answer && chunk.answer !== "Text") {
           accumulatedText += chunk.answer;
           await onStream({ text: chunk.answer });
         }
+
+        // Capture context data when available
+        if (chunk.context) {
+          contextData = chunk.context;
+        }
       }
 
-      const sourceDocuments =
-        stream.context?.map((ctx) => {
+      // Process context after stream completes
+      const sourceDocuments = contextData?.map((ctx) => {
+        // stream.context?.map((ctx) => {
           const filePath = ctx.metadata?.source ?? "";
           const pathSeparator = filePath.includes("/") ? "/" : "\\";
           return filePath.split(pathSeparator).pop();
-        }) || [];
+      }) || [];
+
+      // Send final update with sources
+      await onStream({
+        text: accumulatedText,
+        sourceDocuments,
+        done: true
+      });
 
       return { answer: accumulatedText, sourceDocuments };
     } else {

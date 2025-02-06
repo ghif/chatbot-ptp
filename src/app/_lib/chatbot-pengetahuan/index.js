@@ -2,7 +2,6 @@ import path from "path";
 
 // Model
 import { AI_CONFIG } from "@/config/ai";
-// import { ChatOpenAI }  from "@langchain/openai";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 
 // Store
