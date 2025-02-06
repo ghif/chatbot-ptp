@@ -16,19 +16,6 @@ import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
 import { createRetrievalChain } from "langchain/chains/retrieval";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 
-// const loadVectorStore = async (directory) => {
-//   try {
-//     const embeddings = new OpenAIEmbeddings({
-//       apiKey: process.env.OPENAI_API_KEY,
-//       model: AI_CONFIG.openai.models.embedding,
-//     });
-
-//     return await FaissStore.load(directory, embeddings);
-//   } catch (error) {
-//     throw new Error("Error while loading vector store!", { cause: error });
-//   }
-// };
-
 const loadVectorStore = async (directory) => {
   try {
     const embeddings = new GoogleGenerativeAIEmbeddings({
@@ -108,13 +95,6 @@ const ask = async (prompt) => {
 
 const initialize = async () => {
   try {
-    // const model = new ChatOpenAI({
-    //   apiKey: process.env.OPENAI_API_KEY,
-    //   model: AI_CONFIG.openai.models.chat,
-    //   temperature: AI_CONFIG.openai.temperatures.pengetahuan,
-    //   maxRetries: AI_CONFIG.openai.retries.pengetahuan,
-    // })
-
     const model = new ChatGoogleGenerativeAI({
       apiKey: process.env.GOOGLE_API_KEY,
       model: AI_CONFIG.gemini.models.chat,

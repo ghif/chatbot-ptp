@@ -19,19 +19,6 @@ import { StringOutputParser } from "@langchain/core/output_parsers";
 /** @type {import("@langchain/core/runnables").RunnableSequence<Record<string, unknown>, string> | null} */
 let chain = null;
 
-// const loadVectorStore = async (directory) => {
-//   try {
-//     const embeddings = new OpenAIEmbeddings({
-//       apiKey: process.env.OPENAI_API_KEY,
-//       model: AI_CONFIG.openai.models.embedding,
-//     });
-
-//     return await FaissStore.load(directory, embeddings);
-//   } catch (error) {
-//     throw new Error("Error while loading vector store!", { cause: error });
-//   }
-// };
-
 const loadVectorStore = async (directory) => {
   try {
     const embeddings = new GoogleGenerativeAIEmbeddings({
@@ -91,13 +78,6 @@ const initialize = async () => {
 
   const startTime = performance.now();
   try {
-    // const model = new ChatOpenAI({
-    //   apiKey: process.env.OPENAI_API_KEY,
-    //   model: AI_CONFIG.openai.models.chat,
-    //   temperature: AI_CONFIG.openai.temperatures.peraturan,
-    //   maxRetries: AI_CONFIG.openai.retries.peraturan,
-    // })
-
     const model = new ChatGoogleGenerativeAI({
       apiKey: process.env.GOOGLE_API_KEY,
       model: AI_CONFIG.gemini.models.chat,

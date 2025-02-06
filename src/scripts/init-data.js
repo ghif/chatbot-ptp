@@ -3,7 +3,8 @@ import dotenv from "dotenv";
 import path from "path";
 import fs from "fs/promises";
 
-import { AI_CONFIG } from "@/config/ai";
+// import { AI_CONFIG } from "@/config/ai";
+import { AI_CONFIG } from "../app/_config/ai.js";
 
 import { FaissStore } from "@langchain/community/vectorstores/faiss";
 
@@ -15,7 +16,6 @@ import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
 // Store
-// import { OpenAIEmbeddings } from "@langchain/openai";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { TaskType } from "@google/generative-ai";
 
