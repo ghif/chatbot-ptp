@@ -97,8 +97,8 @@ const initialize = async () => {
     const model = new ChatGoogleGenerativeAI({
       apiKey: process.env.GOOGLE_API_KEY,
       model: AI_CONFIG.gemini.models.chat,
-      temperature: AI_CONFIG.models.temperature.pengetahuan,
-      maxRetries: AI_CONFIG.models.retries.pengetahuan,
+      temperature: AI_CONFIG.gemini.temperatures.pengetahuan,
+      maxRetries: AI_CONFIG.gemini.retries.pengetahuan,
     });
 
 
