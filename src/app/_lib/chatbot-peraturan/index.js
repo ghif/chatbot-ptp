@@ -1,5 +1,8 @@
 import path from "path";
 
+// Prompts
+import { PROMPTS } from "@/config/prompts";
+
 // Model
 import { AI_CONFIG } from "@/config/ai";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
@@ -45,26 +48,8 @@ const createRetriever = (vectorStore) => {
 };
 
 const createChain = async (model, retriever) => {
-  // const promptTemplate = `
-  // Anda adalah seorang asisten yang dapat membantu menjawab pertanyaan user secara lengkap dan detail, jawablah pertanyaan user dengan bahasa indonesia.
-
-  // Konteks: {context}
-  // Pertanyaan: {input}
-  // Jawaban:
-  // `;
-
-  const promptTemplate = `
-  Anda adalah seorang asisten yang dapat membantu menjawab pertanyaan user secara lengkap dan detail, jawablah pertanyaan user dengan bahasa indonesia dengan gaya yang bersahabat dan sopan.
-
-  Selalu awali dengan "Hi PTPers, " dan akhiri dengan "Terima kasih telah bertanya dengan Minters.".
-
-  Konteks: {context}
-  Pertanyaan: {input}
-  Jawaban:
-  `;
-
   try {
-    const prompt = PromptTemplate.fromTemplate(promptTemplate);
+    const prompt = PromptTemplate.fromTemplate(PROMPTS.chat_template);
     const chain = await createStuffDocumentsChain({
       llm: model,
       prompt,
