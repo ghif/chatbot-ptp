@@ -64,6 +64,7 @@ export default function ChatbotMainContent(props) {
 
       while (true) {
         const { value, done } = await reader.read();
+      
         if (done) break;
 
         const chunk = decoder.decode(value);
@@ -79,6 +80,7 @@ export default function ChatbotMainContent(props) {
                   type: "incoming",
                   value: "An error occurred while generating the response.",
                   sourceDocuments: [],
+                  modelType: data.modelType
                 });
                 break;
               }
@@ -88,6 +90,7 @@ export default function ChatbotMainContent(props) {
                   type: "incoming",
                   value: accumulatedResponse,
                   sourceDocuments: data.sourceDocuments || [],
+                  modelType: data.modelType
                 });
                 break;
               }
@@ -98,6 +101,7 @@ export default function ChatbotMainContent(props) {
                   type: "incoming",
                   value: accumulatedResponse,
                   sourceDocuments: [],
+                  modelType: data.modelType
                 });
               }
             } catch (e) {
@@ -159,12 +163,16 @@ export default function ChatbotMainContent(props) {
                       <ul className={styles["source-documents"]}>
                         {message.sourceDocuments.map((doc, docIndex) => (
                           <li key={docIndex}>
-                            <Link
-                              href={`/assets/documents/pdf/${props.modelType}/${doc}`}
-                              target="_blank"
-                            >
-                              {doc}
-                            </Link>
+                            {message.modelType === "peraturan" ? (
+                              <Link
+                                href={`/assets/documents/pdf/${message.modelType}/${doc}`}
+                                target="_blank"
+                              >
+                                {doc}
+                              </Link>
+                            ) : (
+                              <span>{doc}</span>
+                            )}
                           </li>
                         ))}
                       </ul>

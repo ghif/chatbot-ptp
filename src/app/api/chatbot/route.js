@@ -34,7 +34,7 @@ export async function POST(request) {
           result = await ChatbotPeraturan.ask(prompt, {
             onStream: async (chunk) => {
               await writer.write(
-                encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`)
+                encoder.encode(`data: ${JSON.stringify({ ...chunk, modelType })}\n\n`)
               );
             },
           });
@@ -42,7 +42,7 @@ export async function POST(request) {
           result = await ChatbotPengetahuan.ask(prompt, {
             onStream: async (chunk) => {
               await writer.write(
-                encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`)
+                encoder.encode(`data: ${JSON.stringify({ ...chunk, modelType })}\n\n`)
               );
             },
           });
@@ -53,6 +53,7 @@ export async function POST(request) {
             `data: ${JSON.stringify({
               done: true,
               sourceDocuments: result.sourceDocuments,
+              modelType,
             })}\n\n`
           )
         );
