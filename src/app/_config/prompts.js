@@ -53,6 +53,5 @@ export const PROMPTS = {
         Context: {context}
         Question: {input}
         Answwer:
-    `,  
-
+    `, 
   };

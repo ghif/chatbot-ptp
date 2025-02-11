@@ -1,3 +1,7 @@
+/*
+This script is responsible for loading PDF documents from specific directories, processing them using LangChain's document loaders, and saving the processed content as JSON files. It's a crucial initialization step for preparing documents that will later be used for embeddings and vector search.
+*/
+
 import path from "path";
 import fs from "fs/promises";
 

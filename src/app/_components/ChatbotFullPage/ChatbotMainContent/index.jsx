@@ -178,10 +178,17 @@ export default function ChatbotMainContent(props) {
       <div className="flex items-center justify-between border-t border-gray-300 drop-shadow-lg">
         <textarea
           ref={chatInputRef}
-          placeholder="Enter a message..."
+          placeholder="Masukan pesan di sini..."
           spellCheck="false"
           value={userMessage}
           onChange={handleUserMessage}
+          onKeyDown={(e) => {
+            // "Enter": send message
+            // "Shift + Enter": new line
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSendMessage();
+          }}}
           required
           className="h-16 w-full resize-none pl-2 pt-1 outline-none"
         ></textarea>
