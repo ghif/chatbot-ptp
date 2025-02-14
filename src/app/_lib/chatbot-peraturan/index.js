@@ -96,17 +96,23 @@ const initialize = async () => {
   }
 };
 
-const ask = async (prompt, { onStream } = {}) => {
+const ask = async (prompt, { chatHistory = [], onStream } = {}) => {
   if (!chain) {
     chain = await initialize();
   }
 
   const startTime = performance.now();
 
+  // Format chat history for the model
+  const formattedHistory = chatHistory
+    .map(msg => `${msg.role}: ${msg.content}`)
+    .join('\n');
+
   try {
     if (onStream) {
       const stream = await chain.stream({
         input: prompt,
+        chat_history: formattedHistory,
       });
 
       let accumulatedText = "";
@@ -147,6 +153,7 @@ const ask = async (prompt, { onStream } = {}) => {
       // Normal mode (existing code)
       const result = await chain.invoke({
         input: prompt,
+        chat_history: formattedHistory,
       });
       const endTime = performance.now();
       console.log(

@@ -49,6 +49,10 @@ export const PROMPTS = {
         - You always address the user with "Anda”
         - You always answer with your main point in the first sentence of every paragraph
         - Your answer is never more than 5000 characters per paragraph, make a long paragraph into chunks of paragraph
+        - Consider the previous conversation history when available
+
+        Previous conversation: 
+        {chat_history}
 
         Context: {context}
         Question: {input}

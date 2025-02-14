@@ -7,8 +7,9 @@ import * as ChatbotPengetahuan from "@/lib/chatbot-pengetahuan";
 export async function POST(request) {
   try {
     const data = await request.json();
-    const prompt = data?.prompt;
-    const modelType = data?.modelType;
+    // const prompt = data?.prompt;
+    // const modelType = data?.modelType;
+    const { prompt, modelType, chatHistory } = data;
 
     if (!prompt || !modelType) {
       return NextResponse.json(
@@ -32,6 +33,7 @@ export async function POST(request) {
         let result;
         if (modelType === "peraturan") {
           result = await ChatbotPeraturan.ask(prompt, {
+            chatHistory,
             onStream: async (chunk) => {
               await writer.write(
                 encoder.encode(`data: ${JSON.stringify({ ...chunk, modelType })}\n\n`)
@@ -40,6 +42,7 @@ export async function POST(request) {
           });
         } else if (modelType === "pengetahuan") {
           result = await ChatbotPengetahuan.ask(prompt, {
+            chatHistory,
             onStream: async (chunk) => {
               await writer.write(
                 encoder.encode(`data: ${JSON.stringify({ ...chunk, modelType })}\n\n`)

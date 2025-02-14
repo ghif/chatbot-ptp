@@ -12,6 +12,8 @@ export default function ChatbotMainContent(props) {
   const messageHistoryCtx = useContext(MessageHistoryContext);
   const [userMessage, setUserMessage] = useState("");
 
+  const [conversation, setConversation] = useState([]);
+
   const chatInputRef = useRef(null);
   const chatBoxRef = useRef(null);
 
@@ -33,6 +35,12 @@ export default function ChatbotMainContent(props) {
 
     setUserMessage("");
 
+    // Get conversation history from context
+    const chatHistory = messageHistoryCtx.message.map(msg => ({
+      role: msg.type === 'outgoing' ? 'user' : 'assistant',
+      content: msg.value
+    })) || [];
+
     messageHistoryCtx.insert({
       type: "outgoing",
       value: message,
@@ -51,6 +59,7 @@ export default function ChatbotMainContent(props) {
         body: JSON.stringify({
           modelType: props.modelType,
           prompt: message,
+          chatHistory: chatHistory,
         }),
       });
 
@@ -118,6 +127,8 @@ export default function ChatbotMainContent(props) {
         sourceDocuments: [],
       });
     }
+
+    console.info("[ChatbotMainContent: handleSendMessage] messageHistoryCtx: ", messageHistoryCtx);
   };
 
   return (
